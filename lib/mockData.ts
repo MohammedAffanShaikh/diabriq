@@ -1,5 +1,5 @@
 import {
-  Patient,
+  PatientProfile,
   Doctor,
   Hospital,
   Appointment,
@@ -8,12 +8,161 @@ import {
   AuditEvent,
   AIRecommendation,
   NetworkStats,
-  VisitRecord,
   RecordAccess,
+  GlucoseReading,
+  TimelineEvent,
+  HospitalBed,
+  StaffMember,
+  ConsultationRecord,
+  OpdDepartment,
 } from "./types";
 
+// ─── INITIAL PATIENT PROFILE ──────────────────────────────────────────────────
+export const defaultPatientProfile: PatientProfile = {
+  id: "DIA-204829",
+  name: "Rahul Sharma",
+  age: 47,
+  gender: "Male",
+  phone: "+91 98765 43210",
+  email: "rahul.s@email.com",
+  diabetesType: "Type 2",
+  diagnosisYear: 2018,
+  heightCm: 172,
+  weightKg: 76,
+  bmi: 25.7,
+  bloodPressure: "124/82",
+  hba1c: 7.2,
+  medicationInfo: "Metformin 500mg twice daily (BD), Glimepiride 1mg once daily (OD)",
+  lastConsultation: "2026-09-10",
+  nextFollowUp: "2026-10-15",
+  connectedHospitals: ["h1", "h2", "h4"],
+  assignedDoctors: ["d1", "d3"],
+  totalVisits: 7,
+  documents: 12,
+  language: "English",
+  caregiverAccess: {
+    name: "Vikram Sharma",
+    relationship: "Son",
+    permissions: ["appointments", "queue", "notifications"],
+    authorized: true,
+  },
+};
+
+// ─── INITIAL GLUCOSE READINGS ────────────────────────────────────────────────
+export const defaultGlucoseReadings: GlucoseReading[] = [
+  {
+    id: "gl-001",
+    patientId: "DIA-204829",
+    date: "2026-10-03",
+    time: "08:15 AM",
+    value: 118,
+    readingType: "Fasting",
+    notes: "Fasting morning test before breakfast",
+    createdAt: "2026-10-03T08:15:00Z",
+  },
+  {
+    id: "gl-002",
+    patientId: "DIA-204829",
+    date: "2026-10-02",
+    time: "02:30 PM",
+    value: 154,
+    readingType: "After Meal",
+    notes: "2 hours post lunch",
+    createdAt: "2026-10-02T14:30:00Z",
+  },
+  {
+    id: "gl-003",
+    patientId: "DIA-204829",
+    date: "2026-10-01",
+    time: "08:00 AM",
+    value: 124,
+    readingType: "Fasting",
+    notes: "Slight headache",
+    createdAt: "2026-10-01T08:00:00Z",
+  },
+  {
+    id: "gl-004",
+    patientId: "DIA-204829",
+    date: "2026-09-29",
+    time: "07:45 PM",
+    value: 138,
+    readingType: "Before Meal",
+    notes: "Before dinner",
+    createdAt: "2026-09-29T19:45:00Z",
+  },
+  {
+    id: "gl-005",
+    patientId: "DIA-204829",
+    date: "2026-09-27",
+    time: "08:30 AM",
+    value: 112,
+    readingType: "Fasting",
+    notes: "Good exercise yesterday",
+    createdAt: "2026-09-27T08:30:00Z",
+  },
+  {
+    id: "gl-006",
+    patientId: "DIA-204829",
+    date: "2026-09-25",
+    time: "03:00 PM",
+    value: 172,
+    readingType: "After Meal",
+    notes: "Post festive meal",
+    createdAt: "2026-09-25T15:00:00Z",
+  },
+];
+
+// ─── INITIAL TIMELINE EVENTS ────────────────────────────────────────────────
+export const defaultTimelineEvents: TimelineEvent[] = [
+  {
+    id: "tl-001",
+    patientId: "DIA-204829",
+    date: "03 Oct 2026",
+    timestamp: "2026-10-03T08:15:00Z",
+    title: "Glucose Reading Recorded",
+    description: "Fasting: 118 mg/dL (Normal Range)",
+    type: "glucose_reading",
+  },
+  {
+    id: "tl-002",
+    patientId: "DIA-204829",
+    date: "01 Oct 2026",
+    timestamp: "2026-10-01T11:00:00Z",
+    title: "Doctor Consultation Completed",
+    description: "Dr. Ayesha Khan · City Diabetes Centre — Adjusted Metformin timing.",
+    type: "consultation",
+  },
+  {
+    id: "tl-003",
+    patientId: "DIA-204829",
+    date: "25 Sep 2026",
+    timestamp: "2026-09-25T10:00:00Z",
+    title: "HbA1c Lab Result Updated",
+    description: "HbA1c: 7.2% (Target < 7.0%)",
+    type: "hba1c_update",
+  },
+  {
+    id: "tl-004",
+    patientId: "DIA-204829",
+    date: "24 Sep 2026",
+    timestamp: "2026-09-24T09:30:00Z",
+    title: "OPD Appointment Booked",
+    description: "City Diabetes Centre with Dr. Ayesha Khan (Token #18)",
+    type: "appointment_booked",
+  },
+  {
+    id: "tl-005",
+    patientId: "DIA-204829",
+    date: "10 Sep 2026",
+    timestamp: "2026-09-10T11:00:00Z",
+    title: "Regular OPD Checkup",
+    description: "Dr. Priya Mehta · Metro Hospital — BP 124/82, Weight 76 kg",
+    type: "consultation",
+  },
+];
+
 // ─── HOSPITALS ────────────────────────────────────────────────────────────────
-export const hospitals: Hospital[] = [
+export const defaultHospitals: Hospital[] = [
   {
     id: "h1",
     name: "City Diabetes Centre",
@@ -21,7 +170,7 @@ export const hospitals: Hospital[] = [
     city: "Mumbai",
     status: "operational",
     opdCapacityPercent: 82,
-    bedsAvailable: { general: 12, icu: 2, observation: 4 },
+    bedsAvailable: { general: 12, icu: 2, observation: 4, total: 35, occupied: 17, reserved: 0, maintenance: 0 },
     doctorsAvailable: 12,
     doctorsTotal: 15,
     appointmentsToday: 184,
@@ -29,6 +178,7 @@ export const hospitals: Hospital[] = [
     cancelledSlots: 9,
     availableSlots: 4,
     avgWaitMinutes: 18,
+    departments: ["Endocrinology", "Diabetology", "Podiatry", "Ophthalmology", "Nutrition"],
   },
   {
     id: "h2",
@@ -37,7 +187,7 @@ export const hospitals: Hospital[] = [
     city: "Mumbai",
     status: "operational",
     opdCapacityPercent: 67,
-    bedsAvailable: { general: 8, icu: 1, observation: 2 },
+    bedsAvailable: { general: 8, icu: 1, observation: 2, total: 25, occupied: 14, reserved: 0, maintenance: 0 },
     doctorsAvailable: 9,
     doctorsTotal: 12,
     appointmentsToday: 152,
@@ -45,6 +195,7 @@ export const hospitals: Hospital[] = [
     cancelledSlots: 4,
     availableSlots: 8,
     avgWaitMinutes: 14,
+    departments: ["Internal Medicine", "Endocrinology", "Diabetology", "Nephrology"],
   },
   {
     id: "h3",
@@ -53,7 +204,7 @@ export const hospitals: Hospital[] = [
     city: "Mumbai",
     status: "high-load",
     opdCapacityPercent: 94,
-    bedsAvailable: { general: 2, icu: 0, observation: 1 },
+    bedsAvailable: { general: 2, icu: 0, observation: 1, total: 20, occupied: 17, reserved: 0, maintenance: 0 },
     doctorsAvailable: 6,
     doctorsTotal: 10,
     appointmentsToday: 201,
@@ -61,6 +212,7 @@ export const hospitals: Hospital[] = [
     cancelledSlots: 2,
     availableSlots: 0,
     avgWaitMinutes: 41,
+    departments: ["Endocrinology", "General Medicine", "Cardiology"],
   },
   {
     id: "h4",
@@ -69,7 +221,7 @@ export const hospitals: Hospital[] = [
     city: "Mumbai",
     status: "operational",
     opdCapacityPercent: 55,
-    bedsAvailable: { general: 6, icu: 1, observation: 3 },
+    bedsAvailable: { general: 6, icu: 1, observation: 3, total: 15, occupied: 5, reserved: 0, maintenance: 0 },
     doctorsAvailable: 7,
     doctorsTotal: 9,
     appointmentsToday: 98,
@@ -77,6 +229,7 @@ export const hospitals: Hospital[] = [
     cancelledSlots: 6,
     availableSlots: 7,
     avgWaitMinutes: 11,
+    departments: ["General Medicine", "Diabetology", "Primary Care"],
   },
   {
     id: "h5",
@@ -85,7 +238,7 @@ export const hospitals: Hospital[] = [
     city: "Mumbai",
     status: "operational",
     opdCapacityPercent: 71,
-    bedsAvailable: { general: 9, icu: 3, observation: 2 },
+    bedsAvailable: { general: 9, icu: 3, observation: 2, total: 30, occupied: 16, reserved: 0, maintenance: 0 },
     doctorsAvailable: 8,
     doctorsTotal: 11,
     appointmentsToday: 127,
@@ -93,11 +246,12 @@ export const hospitals: Hospital[] = [
     cancelledSlots: 5,
     availableSlots: 5,
     avgWaitMinutes: 16,
+    departments: ["Endocrinology", "Diabetology", "Vascular Surgery"],
   },
 ];
 
 // ─── DOCTORS ─────────────────────────────────────────────────────────────────
-export const doctors: Doctor[] = [
+export const defaultDoctors: Doctor[] = [
   {
     id: "d1",
     name: "Dr. Ayesha Khan",
@@ -106,9 +260,12 @@ export const doctors: Doctor[] = [
     hospitalName: "City Diabetes Centre",
     opdRoom: "OPD 02",
     available: true,
+    availableDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    availableHours: "09:00 AM - 02:00 PM",
+    experienceYears: 14,
     patientsToday: 42,
-    waitingPatients: 11,
-    inConsultation: 2,
+    waitingPatients: 6,
+    inConsultation: 1,
     completed: 27,
     cancelled: 2,
     avgWaitMinutes: 18,
@@ -122,6 +279,9 @@ export const doctors: Doctor[] = [
     hospitalName: "City Diabetes Centre",
     opdRoom: "OPD 03",
     available: true,
+    availableDays: ["Monday", "Wednesday", "Friday", "Saturday"],
+    availableHours: "10:00 AM - 04:00 PM",
+    experienceYears: 11,
     patientsToday: 38,
     waitingPatients: 8,
     inConsultation: 1,
@@ -138,6 +298,9 @@ export const doctors: Doctor[] = [
     hospitalName: "Metro Hospital",
     opdRoom: "OPD 01",
     available: true,
+    availableDays: ["Tuesday", "Thursday", "Saturday"],
+    availableHours: "09:30 AM - 01:30 PM",
+    experienceYears: 9,
     patientsToday: 35,
     waitingPatients: 6,
     inConsultation: 1,
@@ -154,6 +317,9 @@ export const doctors: Doctor[] = [
     hospitalName: "Central Hospital",
     opdRoom: "OPD 01",
     available: true,
+    availableDays: ["Monday", "Tuesday", "Thursday", "Friday"],
+    availableHours: "08:30 AM - 01:00 PM",
+    experienceYears: 16,
     patientsToday: 48,
     waitingPatients: 16,
     inConsultation: 2,
@@ -164,99 +330,8 @@ export const doctors: Doctor[] = [
   },
 ];
 
-// ─── PATIENTS ─────────────────────────────────────────────────────────────────
-export const patients: Patient[] = [
-  {
-    id: "DIA-204829",
-    name: "Rahul Sharma",
-    age: 47,
-    gender: "Male",
-    phone: "+91 98765 43210",
-    email: "rahul.s@email.com",
-    diabetesType: "Type 2",
-    connectedHospitals: ["h1", "h2", "h4"],
-    assignedDoctors: ["d1", "d3"],
-    totalVisits: 7,
-    documents: 12,
-    language: "Hindi",
-  },
-  {
-    id: "DIA-205134",
-    name: "Fatima Shaikh",
-    age: 38,
-    gender: "Female",
-    phone: "+91 91234 56789",
-    diabetesType: "Type 2",
-    connectedHospitals: ["h1", "h3"],
-    assignedDoctors: ["d1"],
-    totalVisits: 4,
-    documents: 7,
-    language: "Urdu",
-  },
-  {
-    id: "DIA-205890",
-    name: "Amit Patil",
-    age: 54,
-    gender: "Male",
-    phone: "+91 99887 76655",
-    diabetesType: "Type 1",
-    connectedHospitals: ["h1", "h2"],
-    assignedDoctors: ["d2", "d3"],
-    totalVisits: 12,
-    documents: 18,
-    language: "Marathi",
-  },
-  {
-    id: "DIA-206271",
-    name: "Sunita Desai",
-    age: 62,
-    gender: "Female",
-    phone: "+91 87654 32109",
-    diabetesType: "Type 2",
-    connectedHospitals: ["h2", "h4"],
-    assignedDoctors: ["d3"],
-    totalVisits: 9,
-    documents: 15,
-    language: "English",
-    caregiverAccess: {
-      name: "Vikram Desai",
-      relationship: "Son",
-      permissions: ["appointments", "queue", "notifications"],
-      authorized: true,
-    },
-  },
-  {
-    id: "DIA-207443",
-    name: "Mohammad Ansari",
-    age: 51,
-    gender: "Male",
-    phone: "+91 77654 32198",
-    diabetesType: "Pre-diabetes",
-    connectedHospitals: ["h1"],
-    assignedDoctors: ["d1"],
-    totalVisits: 3,
-    documents: 5,
-    language: "Urdu",
-  },
-];
-
-// ─── QUEUE ────────────────────────────────────────────────────────────────────
-export const liveQueue: QueueEntry[] = [
-  { token: 12, patientId: "DIA-203001", patientName: "Kavya Nair", appointmentTime: "10:00", status: "in-consultation", waitMinutes: 0 },
-  { token: 13, patientId: "DIA-203211", patientName: "Suresh Iyer", appointmentTime: "10:15", status: "called", waitMinutes: 5 },
-  { token: 14, patientId: "DIA-203522", patientName: "Geeta Bhatt", appointmentTime: "10:15", status: "waiting", waitMinutes: 10 },
-  { token: 15, patientId: "DIA-203740", patientName: "Ramesh Gupta", appointmentTime: "10:15", status: "waiting", waitMinutes: 15 },
-  { token: 16, patientId: "DIA-203912", patientName: "Anita Joshi", appointmentTime: "10:30", status: "waiting", waitMinutes: 18 },
-  { token: 17, patientId: "DIA-204102", patientName: "Deepak Malhotra", appointmentTime: "10:30", status: "waiting", waitMinutes: 22 },
-  { token: 18, patientId: "DIA-204829", patientName: "Rahul Sharma", appointmentTime: "10:30", status: "waiting", waitMinutes: 24 },
-  { token: 19, patientId: "DIA-205134", patientName: "Fatima Shaikh", appointmentTime: "10:45", status: "waiting", waitMinutes: 31 },
-  { token: 20, patientId: "DIA-205890", patientName: "Amit Patil", appointmentTime: "11:00", status: "confirmed", waitMinutes: 0 },
-  { token: 21, patientId: "DIA-206271", patientName: "Sunita Desai", appointmentTime: "11:15", status: "confirmed", waitMinutes: 0 },
-  { token: 22, patientId: "DIA-207443", patientName: "Mohammad Ansari", appointmentTime: "11:30", status: "confirmed", waitMinutes: 0 },
-];
-
-// ─── APPOINTMENTS ─────────────────────────────────────────────────────────────
-export const appointments: Appointment[] = [
+// ─── INITIAL APPOINTMENTS ─────────────────────────────────────────────────────
+export const defaultAppointments: Appointment[] = [
   {
     id: "apt-001",
     patientId: "DIA-204829",
@@ -266,11 +341,13 @@ export const appointments: Appointment[] = [
     specialty: "Endocrinology",
     hospitalId: "h1",
     hospitalName: "City Diabetes Centre",
-    date: "2026-09-24",
+    department: "Endocrinology",
+    date: "2026-10-03",
     time: "10:30 AM",
     token: 18,
     status: "waiting",
     type: "follow-up",
+    createdAt: "2026-10-01T09:00:00Z",
   },
   {
     id: "apt-002",
@@ -281,11 +358,13 @@ export const appointments: Appointment[] = [
     specialty: "Internal Medicine",
     hospitalId: "h2",
     hospitalName: "Metro Hospital",
+    department: "Internal Medicine",
     date: "2026-09-10",
     time: "11:00 AM",
     token: 8,
     status: "completed",
     type: "regular",
+    createdAt: "2026-09-05T10:00:00Z",
   },
   {
     id: "apt-003",
@@ -296,29 +375,16 @@ export const appointments: Appointment[] = [
     specialty: "Endocrinology",
     hospitalId: "h1",
     hospitalName: "City Diabetes Centre",
+    department: "Endocrinology",
     date: "2026-08-20",
     time: "09:30 AM",
     token: 5,
     status: "completed",
     type: "regular",
+    createdAt: "2026-08-15T11:30:00Z",
   },
   {
     id: "apt-004",
-    patientId: "DIA-204829",
-    patientName: "Rahul Sharma",
-    doctorId: "d1",
-    doctorName: "Dr. Ayesha Khan",
-    specialty: "Endocrinology",
-    hospitalId: "h1",
-    hospitalName: "City Diabetes Centre",
-    date: "2026-07-15",
-    time: "10:00 AM",
-    token: 12,
-    status: "cancelled",
-    type: "regular",
-  },
-  {
-    id: "apt-005",
     patientId: "DIA-205134",
     patientName: "Fatima Shaikh",
     doctorId: "d1",
@@ -326,14 +392,16 @@ export const appointments: Appointment[] = [
     specialty: "Endocrinology",
     hospitalId: "h1",
     hospitalName: "City Diabetes Centre",
-    date: "2026-09-24",
+    department: "Endocrinology",
+    date: "2026-10-03",
     time: "10:45 AM",
     token: 19,
     status: "waiting",
     type: "regular",
+    createdAt: "2026-10-02T08:00:00Z",
   },
   {
-    id: "apt-006",
+    id: "apt-005",
     patientId: "DIA-205890",
     patientName: "Amit Patil",
     doctorId: "d1",
@@ -341,69 +409,245 @@ export const appointments: Appointment[] = [
     specialty: "Endocrinology",
     hospitalId: "h1",
     hospitalName: "City Diabetes Centre",
-    date: "2026-09-24",
+    department: "Endocrinology",
+    date: "2026-10-03",
     time: "11:00 AM",
     token: 20,
     status: "upcoming",
     type: "regular",
+    createdAt: "2026-10-02T09:30:00Z",
   },
 ];
 
-// ─── VISIT HISTORY ────────────────────────────────────────────────────────────
-export const visitHistory: VisitRecord[] = [
+// ─── INITIAL LIVE QUEUE ───────────────────────────────────────────────────────
+export const defaultLiveQueue: QueueEntry[] = [
+  { token: 12, patientId: "DIA-203001", patientName: "Kavya Nair", appointmentTime: "10:00 AM", doctorId: "d1", status: "in-consultation", waitMinutes: 0, appointmentId: "apt-100" },
+  { token: 13, patientId: "DIA-203211", patientName: "Suresh Iyer", appointmentTime: "10:15 AM", doctorId: "d1", status: "called", waitMinutes: 4, appointmentId: "apt-101" },
+  { token: 14, patientId: "DIA-203522", patientName: "Geeta Bhatt", appointmentTime: "10:15 AM", doctorId: "d1", status: "waiting", waitMinutes: 8, appointmentId: "apt-102" },
+  { token: 15, patientId: "DIA-203740", patientName: "Ramesh Gupta", appointmentTime: "10:15 AM", doctorId: "d1", status: "waiting", waitMinutes: 12, appointmentId: "apt-103" },
+  { token: 16, patientId: "DIA-203912", patientName: "Anita Joshi", appointmentTime: "10:30 AM", doctorId: "d1", status: "waiting", waitMinutes: 16, appointmentId: "apt-104" },
+  { token: 17, patientId: "DIA-204102", patientName: "Deepak Malhotra", appointmentTime: "10:30 AM", doctorId: "d1", status: "waiting", waitMinutes: 20, appointmentId: "apt-105" },
+  { token: 18, patientId: "DIA-204829", patientName: "Rahul Sharma", appointmentTime: "10:30 AM", doctorId: "d1", status: "waiting", waitMinutes: 24, appointmentId: "apt-001" },
+  { token: 19, patientId: "DIA-205134", patientName: "Fatima Shaikh", appointmentTime: "10:45 AM", doctorId: "d1", status: "waiting", waitMinutes: 28, appointmentId: "apt-004" },
+  { token: 20, patientId: "DIA-205890", patientName: "Amit Patil", appointmentTime: "11:00 AM", doctorId: "d1", status: "confirmed", waitMinutes: 32, appointmentId: "apt-005" },
+];
+
+// ─── INITIAL CONSULTATION RECORDS ───────────────────────────────────────────
+export const defaultConsultations: ConsultationRecord[] = [
   {
-    date: "Sept 2026",
-    year: 2026,
-    hospitalId: "h1",
-    hospitalName: "City Diabetes Centre",
-    type: "OPD Visit",
-    doctorName: "Dr. Ayesha Khan",
-  },
-  {
-    date: "Sept 2026",
-    year: 2026,
-    hospitalId: "h1",
-    hospitalName: "City Diabetes Centre",
-    type: "Uploaded document",
-  },
-  {
-    date: "Aug 2026",
-    year: 2026,
-    hospitalId: "h1",
-    hospitalName: "City Diabetes Centre",
-    type: "Follow-up scheduled",
-    doctorName: "Dr. Ayesha Khan",
-  },
-  {
-    date: "June 2026",
-    year: 2026,
-    hospitalId: "h2",
-    hospitalName: "Metro Hospital",
-    type: "OPD Visit",
+    id: "c-001",
+    appointmentId: "apt-002",
+    patientId: "DIA-204829",
+    patientName: "Rahul Sharma",
+    doctorId: "d3",
     doctorName: "Dr. Priya Mehta",
-  },
-  {
-    date: "Jan 2026",
-    year: 2026,
-    hospitalId: "h4",
-    hospitalName: "Community Health Centre",
-    type: "Consultation record",
-  },
-  {
-    date: "Nov 2025",
-    year: 2025,
     hospitalId: "h2",
     hospitalName: "Metro Hospital",
-    type: "OPD Visit",
+    date: "2026-09-10",
+    time: "11:00 AM",
+    notes: "Patient reports stable morning readings around 120-130 mg/dL. Encouraged dietary control and 30 min daily walking.",
+    observations: "BP 124/82. HbA1c 7.2%. No signs of peripheral neuropathy. Fundus examination clear.",
+    followUpDate: "2026-10-15",
+    createdAt: "2026-09-10T11:30:00Z",
+  },
+  {
+    id: "c-002",
+    appointmentId: "apt-003",
+    patientId: "DIA-204829",
+    patientName: "Rahul Sharma",
+    doctorId: "d1",
+    doctorName: "Dr. Ayesha Khan",
+    hospitalId: "h1",
+    hospitalName: "City Diabetes Centre",
+    date: "2026-08-20",
+    time: "09:30 AM",
+    notes: "Routine quarterly endocrinology review. Adjusted Glimepiride to 1mg OD.",
+    observations: "Weight 76kg. Post-meal glucose 154 mg/dL. Patient compliant with medication.",
+    followUpDate: "2026-09-24",
+    createdAt: "2026-08-20T10:00:00Z",
+  },
+];
+
+// ─── INITIAL BEDS ─────────────────────────────────────────────────────────────
+export const defaultBeds: HospitalBed[] = [
+  { id: "BED-101", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Diabetes Care Ward A", floor: "2nd Floor", bedType: "General", status: "occupied", patientName: "Sanjay Verma", patientId: "DIA-901", updatedAt: "2026-10-03T07:00:00Z" },
+  { id: "BED-102", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Diabetes Care Ward A", floor: "2nd Floor", bedType: "General", status: "available", updatedAt: "2026-10-03T08:00:00Z" },
+  { id: "BED-103", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Diabetes Care Ward A", floor: "2nd Floor", bedType: "General", status: "occupied", patientName: "Nisha Patel", patientId: "DIA-902", updatedAt: "2026-10-03T06:30:00Z" },
+  { id: "BED-104", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Diabetes Care Ward B", floor: "2nd Floor", bedType: "General", status: "available", updatedAt: "2026-10-03T08:00:00Z" },
+  { id: "BED-105", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "ICU Unit 1", floor: "3rd Floor", bedType: "ICU", status: "occupied", patientName: "Harish Rao", patientId: "DIA-903", updatedAt: "2026-10-02T22:00:00Z" },
+  { id: "BED-106", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "ICU Unit 1", floor: "3rd Floor", bedType: "ICU", status: "available", updatedAt: "2026-10-03T08:00:00Z" },
+  { id: "BED-107", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Observation Ward", floor: "1st Floor", bedType: "Observation", status: "reserved", patientName: "Meenakshi K", patientId: "DIA-904", updatedAt: "2026-10-03T07:45:00Z" },
+  { id: "BED-108", hospitalId: "h1", hospitalName: "City Diabetes Centre", ward: "Observation Ward", floor: "1st Floor", bedType: "Observation", status: "available", updatedAt: "2026-10-03T08:00:00Z" },
+  { id: "BED-201", hospitalId: "h2", hospitalName: "Metro Hospital", ward: "Medical Ward 1", floor: "1st Floor", bedType: "General", status: "occupied", patientName: "Tarun Bajaj", patientId: "DIA-905", updatedAt: "2026-10-03T05:00:00Z" },
+  { id: "BED-202", hospitalId: "h2", hospitalName: "Metro Hospital", ward: "Medical Ward 1", floor: "1st Floor", bedType: "General", status: "available", updatedAt: "2026-10-03T08:00:00Z" },
+  { id: "BED-203", hospitalId: "h2", hospitalName: "Metro Hospital", ward: "ICU Ward", floor: "2nd Floor", bedType: "ICU", status: "maintenance", updatedAt: "2026-10-03T04:00:00Z" },
+  { id: "BED-301", hospitalId: "h3", hospitalName: "Central Hospital", ward: "General Ward A", floor: "1st Floor", bedType: "General", status: "occupied", patientName: "Kamlesh Shah", patientId: "DIA-906", updatedAt: "2026-10-03T06:00:00Z" },
+];
+
+// ─── INITIAL STAFF MEMBERS (HRM) ─────────────────────────────────────────────
+export const defaultStaffMembers: StaffMember[] = [
+  { id: "STF-101", name: "Dr. Ayesha Khan", role: "Doctor", department: "Endocrinology", contact: "+91 98200 11223", email: "ayesha.k@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-102", name: "Dr. Rajesh Sharma", role: "Doctor", department: "Diabetology", contact: "+91 98200 33445", email: "rajesh.s@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-103", name: "Nurse Sunita Rane", role: "Nurse", department: "OPD Nursing", contact: "+91 98200 55667", email: "sunita.r@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-104", name: "Nurse Priya Nair", role: "Nurse", department: "Diabetes Educator", contact: "+91 98200 77889", email: "priya.n@citydiabetes.org", shift: "Evening", availability: "Available", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-105", name: "Amit Kumar", role: "Receptionist", department: "OPD Registration", contact: "+91 98200 99001", email: "amit.k@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-106", name: "Rohan Kulkarni", role: "Technician", department: "Diabetes Lab & CGM", contact: "+91 98200 12345", email: "rohan.k@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-107", name: "Anjali Gupta", role: "Administrator", department: "Hospital Operations", contact: "+91 98200 23456", email: "anjali.g@citydiabetes.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h1", hospitalName: "City Diabetes Centre" },
+  { id: "STF-108", name: "Dr. Priya Mehta", role: "Doctor", department: "Internal Medicine", contact: "+91 98200 34567", email: "priya.m@metrohospital.org", shift: "Morning", availability: "On Duty", status: "Active", hospitalId: "h2", hospitalName: "Metro Hospital" },
+];
+
+// ─── INITIAL OPD DEPARTMENTS ─────────────────────────────────────────────────
+export const defaultOpdDepartments: OpdDepartment[] = [
+  {
+    id: "opd-dep-1",
+    hospitalId: "h1",
+    name: "Endocrinology",
+    doctorId: "d1",
+    doctorName: "Dr. Ayesha Khan",
+    workingHours: "09:00 AM - 02:00 PM",
+    slotDurationMinutes: 15,
+    maxPatientsPerSlot: 1,
+    isOpen: true,
+    slots: ["09:00 AM", "09:15 AM", "09:30 AM", "09:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM", "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM", "12:00 PM", "12:15 PM"],
+  },
+  {
+    id: "opd-dep-2",
+    hospitalId: "h1",
+    name: "Diabetology",
+    doctorId: "d2",
+    doctorName: "Dr. Rajesh Sharma",
+    workingHours: "10:00 AM - 04:00 PM",
+    slotDurationMinutes: 20,
+    maxPatientsPerSlot: 1,
+    isOpen: true,
+    slots: ["10:00 AM", "10:20 AM", "10:40 AM", "11:00 AM", "11:20 AM", "11:40 AM", "12:00 PM", "12:20 PM", "02:00 PM", "02:20 PM", "02:40 PM"],
+  },
+  {
+    id: "opd-dep-3",
+    hospitalId: "h2",
+    name: "Internal Medicine",
+    doctorId: "d3",
     doctorName: "Dr. Priya Mehta",
+    workingHours: "09:30 AM - 01:30 PM",
+    slotDurationMinutes: 15,
+    maxPatientsPerSlot: 1,
+    isOpen: true,
+    slots: ["09:30 AM", "09:45 AM", "10:00 AM", "10:15 AM", "10:30 AM", "11:00 AM", "11:15 AM", "11:30 AM"],
+  },
+];
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+export const defaultNotifications: Notification[] = [
+  {
+    id: "n1",
+    type: "info",
+    title: "Appointment Confirmed",
+    message: "Your appointment with Dr. Ayesha Khan at City Diabetes Centre on 03 Oct is confirmed. Token #18.",
+    timestamp: "Today, 8:30 AM",
+    read: false,
   },
   {
-    date: "Aug 2025",
-    year: 2025,
-    hospitalId: "h2",
-    hospitalName: "Metro Hospital",
-    type: "Discharge document",
+    id: "n2",
+    type: "warning",
+    title: "OPD Queue Status Update",
+    message: "Dr. Khan's OPD is currently serving Token #12. Estimated wait for Token #18 is 24 min.",
+    timestamp: "Today, 10:05 AM",
+    read: false,
   },
+  {
+    id: "n3",
+    type: "success",
+    title: "Glucose Reading Recorded",
+    message: "Fasting reading of 118 mg/dL added successfully to your Diabetes Care Timeline.",
+    timestamp: "Today, 08:15 AM",
+    read: true,
+  },
+];
+
+// ─── AUDIT TRAIL ──────────────────────────────────────────────────────────────
+export const defaultAuditEvents: AuditEvent[] = [
+  {
+    id: "au1",
+    timestamp: "08:15 AM",
+    user: "Rahul Sharma",
+    userRole: "patient",
+    action: "Recorded Fasting Glucose — 118 mg/dL",
+    facility: "Patient Portal",
+    patientId: "DIA-204829",
+    status: "completed",
+  },
+  {
+    id: "au2",
+    timestamp: "10:21 AM",
+    user: "Dr. Ayesha Khan",
+    userRole: "doctor",
+    action: "Accessed patient record — Rahul Sharma (DIA-204829)",
+    facility: "City Diabetes Centre",
+    patientId: "DIA-204829",
+    status: "completed",
+  },
+  {
+    id: "au3",
+    timestamp: "10:30 AM",
+    user: "Dr. Ayesha Khan",
+    userRole: "doctor",
+    action: "Started consultation — Kavya Nair (Token #12)",
+    facility: "City Diabetes Centre",
+    status: "completed",
+  },
+];
+
+// ─── AI RECOMMENDATIONS ───────────────────────────────────────────────────────
+export const defaultAiRecommendations: AIRecommendation[] = [
+  {
+    id: "ai1",
+    type: "slot-fill",
+    title: "Cancellation Slot Re-allocation",
+    description: "Slot opened at 11:30 AM. Waiting patient DIA-205134 can be moved forward.",
+    reason: [
+      "Patient waiting for 28 minutes",
+      "Matches Dr. Khan's OPD availability",
+      "Optimal OPD throughput recovery",
+    ],
+    status: "pending",
+    timestamp: "10:45 AM",
+  },
+  {
+    id: "ai2",
+    type: "bottleneck",
+    title: "OPD Load Warning — Central Hospital",
+    description: "Central Hospital OPD operating at 94% capacity.",
+    reason: [
+      "Average wait reached 41 minutes",
+      "Suggest rerouting non-critical follow-ups to Metro Hospital (14 min wait)",
+      "Requires human coordinator approval",
+    ],
+    status: "pending",
+    timestamp: "10:50 AM",
+  },
+];
+
+// ─── NETWORK STATS ────────────────────────────────────────────────────────────
+export const defaultNetworkStats: NetworkStats = {
+  connectedHospitals: 5,
+  activeDoctors: 47,
+  totalPatients: 84291,
+  appointmentsToday: 2481,
+  avgWaitMinutes: 18,
+  availableBeds: 45,
+  utilizationPercent: 78,
+};
+
+// ─── CAPACITY TREND ────────────────────────────────────────────────────────────
+export const capacityTrend = [
+  { time: "8:00 AM", capacity: 45, wait: 8 },
+  { time: "9:00 AM", capacity: 62, wait: 12 },
+  { time: "10:00 AM", capacity: 78, wait: 18 },
+  { time: "11:00 AM", capacity: 82, wait: 22 },
+  { time: "12:00 PM", capacity: 88, wait: 28 },
+  { time: "01:00 PM", capacity: 75, wait: 20 },
+  { time: "02:00 PM", capacity: 65, wait: 15 },
+  { time: "03:00 PM", capacity: 50, wait: 10 },
 ];
 
 // ─── RECORD ACCESS ─────────────────────────────────────────────────────────────
@@ -422,248 +666,12 @@ export const recordAccess: RecordAccess[] = [
     timestamp: "10 Sep 2026, 11:05 AM",
     authorized: true,
   },
-  {
-    by: "Hospital Admin",
-    role: "Administrative Staff",
-    facility: "City Diabetes Centre",
-    timestamp: "24 Sep 2026, 9:00 AM",
-    authorized: true,
-  },
 ];
 
-// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
-export const notifications: Notification[] = [
-  {
-    id: "n1",
-    type: "info",
-    title: "Appointment Confirmed",
-    message: "Your appointment with Dr. Ayesha Khan at City Diabetes Centre on 24 Sep is confirmed. Token #18.",
-    timestamp: "Today, 8:30 AM",
-    read: false,
-  },
-  {
-    id: "n2",
-    type: "warning",
-    title: "OPD Running Late",
-    message: "Dr. Khan's OPD is running approximately 12 minutes behind schedule. Estimated wait is 24 min.",
-    timestamp: "Today, 10:05 AM",
-    read: false,
-  },
-  {
-    id: "n3",
-    type: "success",
-    title: "Record Access Logged",
-    message: "Dr. Ayesha Khan accessed your record at City Diabetes Centre — Today, 10:21 AM.",
-    timestamp: "Today, 10:21 AM",
-    read: false,
-  },
-  {
-    id: "n4",
-    type: "info",
-    title: "New Appointment Slot Available",
-    message: "A slot opened at 11:30 AM today at City Diabetes Centre. Would you like to take it?",
-    timestamp: "Today, 10:45 AM",
-    read: true,
-  },
-  {
-    id: "n5",
-    type: "success",
-    title: "Administrative Request Approved",
-    message: "Your caregiver access request for Vikram Desai has been approved.",
-    timestamp: "Yesterday, 3:12 PM",
-    read: true,
-  },
-  {
-    id: "n6",
-    type: "info",
-    title: "Hospital Capacity Updated",
-    message: "Metro Hospital now has 8 available appointment slots for this week.",
-    timestamp: "Yesterday, 9:00 AM",
-    read: true,
-  },
-  {
-    id: "n7",
-    type: "success",
-    title: "Patient Accepted Rescheduled Appointment",
-    message: "Rahul Sharma accepted the rescheduled slot at 10:30 AM on 24 Sep.",
-    timestamp: "22 Sep, 4:15 PM",
-    read: true,
-  },
-];
-
-// ─── AUDIT TRAIL ──────────────────────────────────────────────────────────────
-export const auditEvents: AuditEvent[] = [
-  {
-    id: "au1",
-    timestamp: "10:21 AM",
-    user: "Dr. Ayesha Khan",
-    userRole: "doctor",
-    action: "Accessed patient record — Rahul Sharma (DIA-204829)",
-    facility: "City Diabetes Centre",
-    patientId: "DIA-204829",
-    status: "completed",
-  },
-  {
-    id: "au2",
-    timestamp: "10:23 AM",
-    user: "Dr. Ayesha Khan",
-    userRole: "doctor",
-    action: "Appointment rescheduled — Token #15 moved to 10:45 AM",
-    facility: "City Diabetes Centre",
-    status: "completed",
-  },
-  {
-    id: "au3",
-    timestamp: "10:24 AM",
-    user: "System (AI-assisted)",
-    userRole: "network-admin",
-    action: "Patient notified of queue update — Token #18 wait updated to 24 min",
-    facility: "City Diabetes Centre",
-    patientId: "DIA-204829",
-    status: "completed",
-    details: "AI-assisted — Human approval was granted",
-  },
-  {
-    id: "au4",
-    timestamp: "10:25 AM",
-    user: "Admin — City Diabetes Centre",
-    userRole: "hospital-admin",
-    action: "Slot allocation approved — 11:30 AM slot offered to Token #27",
-    facility: "City Diabetes Centre",
-    status: "approved",
-    details: "AI-assisted recommendation approved by hospital admin",
-  },
-  {
-    id: "au5",
-    timestamp: "10:30 AM",
-    user: "Dr. Ayesha Khan",
-    userRole: "doctor",
-    action: "Consultation started — Kavya Nair (Token #12)",
-    facility: "City Diabetes Centre",
-    status: "completed",
-  },
-  {
-    id: "au6",
-    timestamp: "10:47 AM",
-    user: "Dr. Ayesha Khan",
-    userRole: "doctor",
-    action: "Referral requested — Amit Patil to Metro Hospital, Dr. Priya Mehta",
-    facility: "City Diabetes Centre",
-    patientId: "DIA-205890",
-    status: "pending",
-  },
-  {
-    id: "au7",
-    timestamp: "10:52 AM",
-    user: "Admin — Metro Hospital",
-    userRole: "hospital-admin",
-    action: "Referral accepted — Slot allocated for Amit Patil",
-    facility: "Metro Hospital",
-    patientId: "DIA-205890",
-    status: "approved",
-  },
-  {
-    id: "au8",
-    timestamp: "11:00 AM",
-    user: "Dr. Sunil Patil",
-    userRole: "doctor",
-    action: "Administrative note added — Patient document request sent",
-    facility: "Central Hospital",
-    status: "completed",
-  },
-];
-
-// ─── AI RECOMMENDATIONS ───────────────────────────────────────────────────────
-export const aiRecommendations: AIRecommendation[] = [
-  {
-    id: "ai1",
-    type: "slot-fill",
-    title: "Cancellation Detected at 11:30 AM",
-    description: "Patient #27 can be offered the vacant slot.",
-    reason: [
-      "Patient already waiting 32 minutes",
-      "Doctor is available at 11:30 AM",
-      "Slot matches standard appointment duration",
-    ],
-    status: "pending",
-    timestamp: "10:45 AM",
-  },
-  {
-    id: "ai2",
-    type: "bottleneck",
-    title: "OPD Congestion Detected — OPD 03",
-    description: "OPD 03 is currently operating 21 minutes behind schedule.",
-    reason: [
-      "Move next appointment to available doctor (OPD 02)",
-      "Notify waiting patients of updated wait time",
-      "Open vacant slot for walk-in redistribution",
-    ],
-    status: "pending",
-    timestamp: "10:50 AM",
-  },
-  {
-    id: "ai3",
-    type: "reroute",
-    title: "Cross-Hospital Capacity Available",
-    description: "Central Hospital is at 94% capacity. Metro Hospital has 8 available slots.",
-    reason: [
-      "Non-urgent appointments can be redirected",
-      "Metro Hospital has 14-min average wait vs. 41 min at Central",
-      "Patient consent required before any rerouting",
-    ],
-    status: "pending",
-    timestamp: "10:55 AM",
-  },
-];
-
-// ─── NETWORK STATS ────────────────────────────────────────────────────────────
-export const networkStats: NetworkStats = {
-  connectedHospitals: 27,
-  activeDoctors: 186,
-  totalPatients: 84291,
-  appointmentsToday: 2481,
-  avgWaitMinutes: 19,
-  availableBeds: 348,
-  utilizationPercent: 78,
-};
-
-// ─── AVAILABLE SLOTS ──────────────────────────────────────────────────────────
-export const availableSlots = [
-  { time: "10:30 AM", doctorId: "d1", type: "regular" },
-  { time: "11:15 AM", doctorId: "d1", type: "follow-up" },
-  { time: "12:00 PM", doctorId: "d2", type: "regular" },
-  { time: "12:30 PM", doctorId: "d2", type: "walk-in" },
-];
-
-// ─── NETWORK FLOW DATA ────────────────────────────────────────────────────────
-export const flowData = [
-  { name: "Appointments", value: 184 },
-  { name: "Arrived", value: 167 },
-  { name: "Waiting", value: 11 },
-  { name: "Consultation", value: 4 },
-  { name: "Completed", value: 148 },
-  { name: "Delayed", value: 4 },
-];
-
-// ─── CAPACITY TREND ────────────────────────────────────────────────────────────
-export const capacityTrend = [
-  { time: "8:00", capacity: 45, wait: 8 },
-  { time: "9:00", capacity: 62, wait: 12 },
-  { time: "10:00", capacity: 78, wait: 18 },
-  { time: "11:00", capacity: 82, wait: 22 },
-  { time: "12:00", capacity: 88, wait: 28 },
-  { time: "13:00", capacity: 75, wait: 20 },
-  { time: "14:00", capacity: 65, wait: 15 },
-  { time: "15:00", capacity: 50, wait: 10 },
-];
-
-// ─── NETWORK HOSPITAL TABLE ────────────────────────────────────────────────────
 export const networkHospitalTable = [
   { name: "City Diabetes Centre", opdLoad: 82, slots: 4, beds: 18, doctors: 12, wait: 18, status: "operational" },
   { name: "Metro Hospital", opdLoad: 67, slots: 8, beds: 11, doctors: 9, wait: 14, status: "operational" },
   { name: "Central Hospital", opdLoad: 94, slots: 0, beds: 3, doctors: 6, wait: 41, status: "high-load" },
   { name: "Community Health Centre", opdLoad: 55, slots: 7, beds: 10, doctors: 7, wait: 11, status: "operational" },
   { name: "Sunrise Hospital", opdLoad: 71, slots: 5, beds: 14, doctors: 8, wait: 16, status: "operational" },
-  { name: "Western Diabetes Clinic", opdLoad: 63, slots: 6, beds: 8, doctors: 6, wait: 13, status: "operational" },
-  { name: "Navi Mumbai Medical Centre", opdLoad: 89, slots: 1, beds: 5, doctors: 10, wait: 35, status: "high-load" },
 ];

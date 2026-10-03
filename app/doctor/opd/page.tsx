@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import DoctorDashboard from "../page";
 
 export default function DoctorOpdPage() {
-  redirect("/doctor");
+  return <DoctorDashboard />;
 }

@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import PatientAppointmentsPage from "@/app/patient/appointments/page";
 
 export default function DoctorAppointmentsPage() {
-  redirect("/doctor");
+  return <PatientAppointmentsPage />;
 }

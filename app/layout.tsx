@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { DataProvider } from "@/lib/context/DataContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,20 +9,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Diabriq — Connected Diabetes Care Network",
+  title: "DiabetesCareFlow — Integrated Diabetes Care & Hospital Operations Platform",
   description:
-    "A connected operational platform for diabetes outpatient care. Coordinating patients, doctors, and hospitals across a city-wide network.",
+    "A unified frontend-only healthcare prototype integrating patient diabetes monitoring, OPD coordination, queue management, doctor consultations, bed availability, and hospital HRM.",
   keywords: [
     "diabetes care",
-    "healthcare network",
+    "healthcare platform",
     "OPD management",
-    "patient coordination",
-    "hospital operations",
+    "queue management",
+    "bed management",
+    "doctor workflow",
+    "diabetes monitoring",
+    "Time-in-Range",
   ],
   openGraph: {
-    title: "Diabriq — Connected Diabetes Care Network",
+    title: "DiabetesCareFlow — Integrated Diabetes Care & Hospital Operations Platform",
     description:
-      "One connected network for better diabetes care operations.",
+      "Connecting Patient Monitoring → Appointments → OPD → Queue → Doctor Consultations → Bed Management → HRM.",
     type: "website",
   },
 };
@@ -34,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-slate-50 text-slate-900">
-        {children}
+        <DataProvider>{children}</DataProvider>
       </body>
     </html>
   );

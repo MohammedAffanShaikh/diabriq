@@ -1,81 +1,132 @@
-# Diabriq — Connected Diabetes Care Network
+# DiabetesCareFlow — Integrated Diabetes Care & Hospital Operations Platform
 
-> **Healthcare Hackathon Demo** · A production-quality frontend prototype for a connected diabetes outpatient care operations platform.
-
----
-
-## Overview
-
-Diabriq is an assistive healthcare operations and continuity-of-care platform that demonstrates how multiple hospitals and clinics across a city can coordinate diabetes outpatient care through one connected operational network.
-
-**Core concept:** One Patient Identity → Multiple Hospitals → Connected Doctors → Real-Time OPD & Bed Visibility → Coordinated Care
-
-> ⚠️ This is NOT a diagnostic or treatment recommendation system. All AI-assisted suggestions are operational only and require explicit human approval.
+> **Healthcare Hackathon & Research Prototype** · A comprehensive, frontend-only diabetes healthcare coordination and hospital operations platform.
 
 ---
 
-## Features
+## 📌 Executive Summary
 
-- **Patient Portal** — Appointment booking, live OPD queue, health record timeline, hospital network, caregiver access
-- **Doctor Dashboard** — Live OPD queue management, patient profile drawer, AI slot recommendations, all doctor actions
-- **Hospital Operations** — Interactive city network map, OPD capacity trends, bed availability, cross-hospital slot sharing, bottleneck detection
-- **Network Admin** — City-level command center, hospital status table, patient flow monitor, AI alerts, complete audit trail
-- **Demo Role Switcher** — One-click switch between all four dashboards for hackathon demonstration
-- **AI-Assisted Automation** — Every AI recommendation shows "Human approval required" with Approve/Reject controls
+**DiabetesCareFlow** is a research prototype demonstrating how digital technology can connect patient diabetes monitoring with hospital operational workflows into one unified platform.
+
+```text
+Patient Diabetes Monitoring
+          ↓
+Appointment Booking & OPD Slots
+          ↓
+Smart OPD Queue Management
+          ↓
+Doctor Consultation & Clinical Notes
+          ↓
+Follow-Up Scheduling & Timeline Feed
+          ↓
+Continuous Monitoring & HRM / Bed Management
+```
 
 ---
 
-## Tech Stack
+## 🚀 Key Features & Research Modules
+
+### 1. Patient Diabetes Portal (`/patient`)
+- **Diabetes Summary Card**: Real-time display of Diabetes Type (Type 1, Type 2, Gestational, Pre-diabetes), Diagnosis Year, Latest Glucose, HbA1c (%), Blood Pressure, Weight (kg), BMI (auto-calculated), Last Consultation, and Next Follow-up.
+- **Detailed Diabetes Profile (`/patient/profile`)**: Interactive profile editing, vitals management, medication lists, and LocalStorage persistence.
+- **Glucose Tracker & Visualizations (`/patient/glucose`)**: Log blood sugar readings (Fasting, Before Meal, After Meal, Random) with validation, Recharts trend charts, and filterable history logs.
+- **Time-In-Range (TIR) Research Dashboard**: Standardized CGM metrics (% Time in Range: 70–180 mg/dL, % Time Above Range: >180, % Time Below Range: <70) labeled clearly as **"Prototype / Simulated CGM Metric"**.
+- **Simulated CGM Integration Mock**: Architectural preview card with sensor connection status, last sync, and simulated reading.
+- **Diabetes Care Timeline (`/patient/timeline`)**: Unified chronological feed listing glucose logs, HbA1c updates, appointments, doctor consultations, follow-ups, and profile changes.
+- **Consultation History (`/patient/consultations`)**: List and Timeline views of past doctor consultation notes, observations, and follow-up dates.
+- **Patient Diabetes Education (`/patient/education`)**: Educational guides covering 7 non-diagnostic self-care categories.
+
+### 2. Doctor Portal & Outpatient Workflow (`/doctor`)
+- **OPD Queue Table**: Real-time OPD queue list with status badges (`Waiting`, `Called`, `In Consultation`, `Completed`, `Skipped`).
+- **Doctor Queue Controls**: Single-click actions for **Call Next**, **Start Consultation**, **Skip Patient**, and **Complete Consultation**.
+- **Doctor Diabetes Summary**: Complete patient history view showing vitals, glucose trend line, recent readings, care timeline, and past consultations.
+- **Consultation Modal Workflow**: Doctor enters clinical notes, physical observations, and a next follow-up date—saving automatically completes the appointment, updates patient follow-up dates, advances the queue token, and writes to LocalStorage.
+
+### 3. Hospital & Bed Management (`/hospital` & `/hospital/beds`)
+- **Interactive Bed Management System (`/hospital/beds`)**: Individual bed records across General, ICU, Observation, and Emergency wards.
+- **Dynamic Bed Status Recalculations**: Admin/Hospital user can switch any bed status (`Available ✓`, `Occupied ●`, `Reserved ⚑`, `Maintenance ⚠`), instantly triggering real-time recalculation of Total, Available, Occupied, Reserved, and Maintenance counts.
+- **HRM / Staff Management Module (`/hospital/staff`)**: Full personnel roster management (Doctors, Nurses, Receptionists, Technicians, Administrators) with shift assignment, availability status, and Add Staff modal.
+- **OPD Department Configuration (`/hospital/opd`)**: Configure working hours, slot duration (min), max patients per slot, and Open/Close OPD toggles.
+
+### 4. Network Admin Command Center (`/admin`)
+- **City-Wide Operational Command Center**: Aggregated stats for 5 connected clinics, total appointments, available beds, on-duty staff, and active doctors.
+- **Intelligent Operational Analytics (`/admin/analytics`)**: OPD demand distribution by day of the week (Monday to Saturday bar chart calculated from appointment logs) and bed occupancy breakdown.
+- **Live System Audit Log (`/admin/audit`)**: System-wide log tracking all patient and operational actions with user role, timestamp, and status.
+
+---
+
+## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
 | Next.js 14 (App Router) | Framework |
 | React 18 | UI Library |
-| TypeScript | Type Safety |
-| Tailwind CSS | Styling |
-| Recharts | Analytics Charts |
+| TypeScript | Strict Type Safety |
+| Tailwind CSS | Modern Utility Styling |
+| Recharts | Dynamic Analytics & Trend Visualizations |
 | Lucide React | Icons |
+| LocalStorage | Pure Frontend Persistence |
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 diabriq/
 ├── app/
-│   ├── page.tsx              # Landing page
-│   ├── patient/              # Patient portal
-│   │   ├── page.tsx          # Dashboard
-│   │   ├── appointments/     # Appointments
-│   │   ├── queue/            # Live queue
-│   │   ├── records/          # Health records
-│   │   ├── hospitals/        # Hospital network
-│   │   └── notifications/    # Notifications
-│   ├── doctor/               # Doctor portal
-│   │   └── page.tsx          # OPD dashboard
-│   ├── hospital/             # Hospital operations
-│   │   └── page.tsx          # Operations center
-│   └── admin/                # Network admin
-│       ├── page.tsx          # Command center
-│       ├── hospitals/        # Hospital management
-│       └── audit/            # Audit trail
+│   ├── page.tsx                  # Landing page & Role Selection Simulator
+│   ├── layout.tsx                # Root layout wrapped in DataProvider
+│   ├── patient/                  # Patient Portal
+│   │   ├── page.tsx              # Patient Dashboard
+│   │   ├── profile/              # Diabetes Profile & Vitals Form
+│   │   ├── glucose/              # Glucose Monitoring & TIR Dashboard
+│   │   ├── timeline/             # Chronological Care Feed
+│   │   ├── appointments/         # Book OPD Slot & Manage Appointments
+│   │   ├── queue/                # Smart OPD Live Queue & Estimated Wait
+│   │   ├── consultations/        # Doctor Notes & History
+│   │   ├── hospitals/            # Filterable Hospital Directory
+│   │   ├── doctors/              # Specialist Doctor Directory
+│   │   ├── education/            # Patient Self-Care Guides
+│   │   ├── notifications/        # System Notifications
+│   │   └── records/              # Health Records & Access Trail
+│   ├── doctor/                   # Doctor Portal
+│   │   ├── page.tsx              # Doctor Dashboard & Patient Summary
+│   │   ├── opd/                  # Today's OPD Queue
+│   │   ├── patients/             # Assigned Patient Roster
+│   │   ├── appointments/         # Appointments View
+│   │   └── consultations/        # Consultation Records
+│   ├── hospital/                 # Hospital Operations
+│   │   ├── page.tsx              # Operations Center
+│   │   ├── beds/                 # Bed Management System
+│   │   ├── staff/                # HRM / Staff Management
+│   │   ├── opd/                  # OPD Schedule Configuration
+│   │   ├── doctors/              # Doctor Roster
+│   │   └── settings/             # Platform Settings & Demo Reset
+│   └── admin/                    # Network Command Center
+│       ├── page.tsx              # Command Center Dashboard
+│       ├── beds/                 # Bed Management
+│       ├── staff/                # HRM Staff Management
+│       ├── opd/                  # OPD Configuration
+│       ├── analytics/            # Intelligent Operational Analytics
+│       └── audit/                # Live System Audit Trail
 ├── components/
-│   ├── layout/               # Sidebar, Topbar, Layout
-│   └── ui/                   # Badge, Button, Card, Progress
-├── lib/
-│   ├── types.ts              # TypeScript interfaces
-│   ├── mockData.ts           # Simulated demo data
-│   └── utils.ts              # Utility functions
-└── README.md
+│   ├── layout/                   # Sidebar, Topbar, DemoRoleSwitcher, DashboardLayout
+│   └── ui/                       # Badge, Button, Card, Progress
+└── lib/
+    ├── context/
+    │   └── DataContext.tsx       # Central React Context & LocalStorage Provider
+    ├── types.ts                  # TypeScript interfaces (Patient, Bed, Staff, etc.)
+    ├── mockData.ts               # Default mock datasets
+    └── utils.ts                  # Helper utilities
 ```
 
 ---
 
-## Local Setup
+## 💻 Local Setup & Installation
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm 9+
 
 ### Install Dependencies
@@ -94,91 +145,30 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Build for Production
+## 🎭 Demo Roles & Quick Navigation
 
-```bash
-npm run build
-npm run start
-```
+Use the **Demo Role Switcher** (top-right of any dashboard) or role selection cards on the homepage (`/`) to switch between roles instantly:
 
----
-
-## Vercel Deployment
-
-### Deploy with Vercel CLI
-
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-### Deploy with Vercel Dashboard
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com) and import the repository
-3. No environment variables required
-4. Build command: `npm run build`
-5. Output directory: `.next`
-6. Click **Deploy**
-
-> No backend or API keys required. All data is simulated mock data.
-
----
-
-## Demo Accounts / Roles
-
-| Role | URL | Description |
+| Role | URL | Key Capability |
 |---|---|---|
-| Patient | `/patient` | Rahul Sharma — DIA-204829 |
-| Doctor | `/doctor` | Dr. Ayesha Khan — City Diabetes Centre |
-| Hospital | `/hospital` | City Diabetes Centre Operations |
-| Admin | `/admin` | Mumbai Network Administrator |
-
-Use the **Demo Role Switcher** (top-right of any dashboard) to switch between roles instantly.
+| **Patient** | `/patient` | Log glucose, view TIR metrics, track live OPD token & book slots |
+| **Doctor** | `/doctor` | Inspect patient summary, view glucose trend, complete visit & save notes |
+| **Hospital Admin** | `/hospital` | Manage bed statuses, HRM staff roster, and OPD department schedules |
+| **Network Admin** | `/admin` | City command center, OPD demand bar chart, and system audit trail |
 
 ---
 
-## Demo Flow for Judges
+## 🛡️ Medical Safety & Safety Boundaries
 
-1. Open landing page (`/`) — see the network concept
-2. Click **Explore Network** → Patient Portal
-3. View upcoming appointment + live queue (Token #18)
-4. Open health records timeline (consent-based access)
-5. Switch role → **Doctor**
-6. See live OPD queue — click View on Token #18
-7. See AI slot recommendation for cancelled 11:30 AM slot
-8. Click **Approve** — see confirmation
-9. Switch role → **Hospital**
-10. See OPD capacity overview + click hospital nodes on network map
-11. View bed availability table + cross-hospital slots
-12. Approve AI bottleneck recommendation
-13. Switch role → **Admin**
-14. See city-wide hospital table with OPD loads
-15. View patient flow monitor
-16. Check audit trail for all logged actions
+This application is a **healthcare information and coordination prototype**. It does **NOT**:
+- Provide autonomous diabetes diagnosis
+- Recommend insulin dosage changes or prescription modifications
+- Replace direct clinical judgment by qualified healthcare professionals
+
+For abnormal blood sugar levels, neutral guidance directs users to consult a qualified physician.
 
 ---
 
-## Safety Boundary
-
-This application does **NOT** perform:
-
-- Diagnosis
-- Treatment recommendations
-- Clinical decision support
-- Medication recommendations
-- Interpretation of medical reports
-
-All AI assistance is limited to operational coordination only, with human approval required for every action.
-
----
-
-## Data Notice
-
-> ⚠️ **DEMO ENVIRONMENT — All patient and hospital data shown is simulated.** Fictional Indian names and hospital names are used for demonstration purposes only. No real patient data is included.
-
----
-
-## License
+## 📄 License
 
 MIT License — Built for healthcare hackathon demonstration.

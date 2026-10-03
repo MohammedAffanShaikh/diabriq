@@ -9,7 +9,6 @@ import {
   ClipboardList,
   Hospital,
   LayoutDashboard,
-  LogOut,
   Settings,
   Shield,
   Stethoscope,
@@ -19,9 +18,15 @@ import {
   FileText,
   Home,
   Clock,
+  UserCheck,
+  LineChart as LineChartIcon,
+  BookOpen,
+  History,
+  Droplet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useDataContext } from "@/lib/context/DataContext";
 
 interface NavItem {
   label: string;
@@ -30,75 +35,64 @@ interface NavItem {
 }
 
 const patientNav: NavItem[] = [
-  { label: "Home", href: "/patient", icon: <Home size={18} /> },
+  { label: "Dashboard", href: "/patient", icon: <Home size={18} /> },
+  { label: "Diabetes Profile", href: "/patient/profile", icon: <UserCheck size={18} /> },
+  { label: "Glucose Monitoring", href: "/patient/glucose", icon: <Droplet size={18} /> },
+  { label: "Diabetes Timeline", href: "/patient/timeline", icon: <History size={18} /> },
   { label: "Appointments", href: "/patient/appointments", icon: <Calendar size={18} /> },
   { label: "Live Queue", href: "/patient/queue", icon: <Clock size={18} /> },
-  { label: "Records", href: "/patient/records", icon: <FileText size={18} /> },
-  { label: "Hospitals", href: "/patient/hospitals", icon: <Hospital size={18} /> },
+  { label: "Consultation History", href: "/patient/consultations", icon: <FileText size={18} /> },
+  { label: "Hospital Directory", href: "/patient/hospitals", icon: <Hospital size={18} /> },
+  { label: "Doctor Directory", href: "/patient/doctors", icon: <Stethoscope size={18} /> },
+  { label: "Diabetes Education", href: "/patient/education", icon: <BookOpen size={18} /> },
   { label: "Notifications", href: "/patient/notifications", icon: <Bell size={18} /> },
 ];
 
 const doctorNav: NavItem[] = [
   { label: "Dashboard", href: "/doctor", icon: <LayoutDashboard size={18} /> },
-  { label: "Today's OPD", href: "/doctor/opd", icon: <Activity size={18} /> },
-  { label: "Patients", href: "/doctor/patients", icon: <Users size={18} /> },
+  { label: "Today's OPD Queue", href: "/doctor/opd", icon: <Activity size={18} /> },
+  { label: "My Patients", href: "/doctor/patients", icon: <Users size={18} /> },
   { label: "Appointments", href: "/doctor/appointments", icon: <Calendar size={18} /> },
-  { label: "Records", href: "/doctor/records", icon: <FileText size={18} /> },
-  { label: "Network", href: "/doctor/network", icon: <Network size={18} /> },
+  { label: "Consultation History", href: "/doctor/consultations", icon: <FileText size={18} /> },
   { label: "Notifications", href: "/doctor/notifications", icon: <Bell size={18} /> },
 ];
 
 const hospitalNav: NavItem[] = [
   { label: "Dashboard", href: "/hospital", icon: <LayoutDashboard size={18} /> },
   { label: "OPD Operations", href: "/hospital/opd", icon: <Activity size={18} /> },
-  { label: "Bed Availability", href: "/hospital/beds", icon: <Bed size={18} /> },
+  { label: "Bed Management", href: "/hospital/beds", icon: <Bed size={18} /> },
+  { label: "HRM / Staff", href: "/hospital/staff", icon: <Users size={18} /> },
   { label: "Appointments", href: "/hospital/appointments", icon: <Calendar size={18} /> },
-  { label: "Doctors", href: "/hospital/doctors", icon: <Stethoscope size={18} /> },
-  { label: "Network", href: "/hospital/network", icon: <Network size={18} /> },
+  { label: "Doctor Directory", href: "/hospital/doctors", icon: <Stethoscope size={18} /> },
   { label: "Notifications", href: "/hospital/notifications", icon: <Bell size={18} /> },
-  { label: "Audit Trail", href: "/hospital/audit", icon: <Shield size={18} /> },
-  { label: "Settings", href: "/hospital/settings", icon: <Settings size={18} /> },
 ];
 
 const adminNav: NavItem[] = [
-  { label: "Network Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
-  { label: "Hospitals", href: "/admin/hospitals", icon: <Hospital size={18} /> },
-  { label: "Doctors", href: "/admin/doctors", icon: <Stethoscope size={18} /> },
-  { label: "Patients", href: "/admin/patients", icon: <Users size={18} /> },
-  { label: "Capacity", href: "/admin/capacity", icon: <Activity size={18} /> },
-  { label: "Operations", href: "/admin/operations", icon: <ClipboardList size={18} /> },
-  { label: "Audit Logs", href: "/admin/audit", icon: <Shield size={18} /> },
-  { label: "Settings", href: "/admin/settings", icon: <Settings size={18} /> },
+  { label: "Command Center", href: "/admin", icon: <LayoutDashboard size={18} /> },
+  { label: "OPD Management", href: "/admin/opd", icon: <Activity size={18} /> },
+  { label: "Bed Management", href: "/admin/beds", icon: <Bed size={18} /> },
+  { label: "HRM / Staff", href: "/admin/staff", icon: <Users size={18} /> },
+  { label: "Doctor Management", href: "/admin/doctors", icon: <Stethoscope size={18} /> },
+  { label: "Intelligent Analytics", href: "/admin/analytics", icon: <LineChartIcon size={18} /> },
+  { label: "Audit Trail", href: "/admin/audit", icon: <Shield size={18} /> },
 ];
 
 const roleConfig = {
   patient: {
     nav: patientNav,
     label: "Patient Portal",
-    accent: "bg-teal-700",
-    name: "Rahul Sharma",
-    role: "Patient — DIA-204829",
   },
   doctor: {
     nav: doctorNav,
     label: "Doctor Portal",
-    accent: "bg-navy-700",
-    name: "Dr. Ayesha Khan",
-    role: "Endocrinologist",
   },
   hospital: {
     nav: hospitalNav,
     label: "Hospital Dashboard",
-    accent: "bg-indigo-700",
-    name: "City Diabetes Centre",
-    role: "Hospital Administrator",
   },
   admin: {
     nav: adminNav,
     label: "Network Admin",
-    accent: "bg-slate-800",
-    name: "Network Administrator",
-    role: "Diabriq Network",
   },
 };
 
@@ -109,35 +103,48 @@ interface SidebarProps {
 
 export function Sidebar({ role, unreadNotifications = 0 }: SidebarProps) {
   const pathname = usePathname();
+  const { patientProfile } = useDataContext();
   const config = roleConfig[role];
 
+  const userInfo =
+    role === "patient"
+      ? { name: patientProfile.name, subtitle: `${patientProfile.diabetesType} Diabetes` }
+      : role === "doctor"
+      ? { name: "Dr. Ayesha Khan", subtitle: "Endocrinologist · OPD 02" }
+      : role === "hospital"
+      ? { name: "City Diabetes Centre", subtitle: "Hospital Administrator" }
+      : { name: "Network Administrator", subtitle: "Diabriq Command Center" };
+
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-60 bg-slate-900 flex flex-col z-30">
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-slate-700/60">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-            <Activity size={16} className="text-white" />
+    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 flex flex-col z-30 shadow-xl border-r border-slate-800">
+      {/* Logo Header */}
+      <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+            <Activity size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white leading-none">Diabriq</p>
-            <p className="text-[10px] text-slate-400 leading-none mt-0.5">Connected Care Network</p>
+            <p className="text-base font-bold text-white leading-none">DiabetesCareFlow</p>
+            <p className="text-[10px] text-slate-400 leading-none mt-1">Healthcare & Operations</p>
           </div>
-        </div>
+        </Link>
       </div>
 
-      {/* Role label */}
-      <div className="px-4 py-3 border-b border-slate-700/60">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+      {/* Role Tag */}
+      <div className="px-5 py-2.5 bg-slate-800/50 border-b border-slate-800 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
           {config.label}
         </span>
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+      {/* Navigation Links */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 custom-scrollbar">
         {config.nav.map((item) => {
           const isActive =
-            item.href === `/${role}` ? pathname === item.href : pathname.startsWith(item.href);
+            item.href === `/${role}`
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
@@ -146,14 +153,14 @@ export function Sidebar({ role, unreadNotifications = 0 }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-blue-600 text-white shadow-md font-semibold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/80"
               )}
             >
               <span className="shrink-0">{item.icon}</span>
-              {item.label}
+              <span className="truncate">{item.label}</span>
               {item.label === "Notifications" && unreadNotifications > 0 && (
-                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-4 text-center">
                   {unreadNotifications}
                 </span>
               )}
@@ -162,17 +169,16 @@ export function Sidebar({ role, unreadNotifications = 0 }: SidebarProps) {
         })}
       </nav>
 
-      {/* User info */}
-      <div className="px-3 py-4 border-t border-slate-700/60">
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {config.name.charAt(0)}
+      {/* User Info Card */}
+      <div className="p-3 border-t border-slate-800 bg-slate-950/50">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/60 border border-slate-700/50">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-teal-500 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
+            {userInfo.name.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-white truncate">{config.name}</p>
-            <p className="text-[10px] text-slate-400 truncate">{config.role}</p>
+            <p className="text-xs font-semibold text-white truncate">{userInfo.name}</p>
+            <p className="text-[10px] text-slate-400 truncate">{userInfo.subtitle}</p>
           </div>
-          <ChevronRight size={14} className="text-slate-500 shrink-0" />
         </div>
       </div>
     </aside>

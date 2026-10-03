@@ -1,17 +1,20 @@
 "use client";
 
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress";
-import { hospitals } from "@/lib/mockData";
 import { MapPin, Bed, Activity, Stethoscope } from "lucide-react";
+import { useDataContext } from "@/lib/context/DataContext";
 
 export default function AdminHospitals() {
+  const { hospitals, notifications } = useDataContext();
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
-    <DashboardLayout role="admin" title="Hospitals" unreadNotifications={4}>
+    <DashboardLayout role="admin" title="Connected Hospitals" unreadNotifications={unreadCount}>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">Connected Hospitals</h2>
+        <h2 className="text-xl font-bold text-slate-900">Connected Diabetes Clinics</h2>
         <p className="text-sm text-slate-500 mt-0.5">All facilities in the Diabriq network</p>
       </div>
 

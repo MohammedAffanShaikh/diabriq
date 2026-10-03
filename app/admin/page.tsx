@@ -4,377 +4,274 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button, ApproveRejectButtons } from "@/components/ui/button";
-import { AIBadge } from "@/components/ui/badge";
-import { ProgressBar } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
   Activity,
-  AlertTriangle,
   Bed,
-  CheckCircle2,
-  Hospital,
-  Network,
-  Shield,
   Users,
-  Zap,
+  Stethoscope,
   Clock,
+  CheckCircle2,
+  Shield,
+  Hospital as HospitalIcon,
   TrendingUp,
   BarChart3,
-  ArrowUpRight,
-  Stethoscope,
+  Calendar,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  Sankey,
-  Rectangle,
-} from "recharts";
-import {
-  networkStats,
-  networkHospitalTable,
-  auditEvents,
-  aiRecommendations,
-  capacityTrend,
-  flowData,
-  hospitals,
-} from "@/lib/mockData";
-import { getCapacityColor } from "@/lib/utils";
+import { useDataContext } from "@/lib/context/DataContext";
+import Link from "next/link";
 
 export default function AdminDashboard() {
-  const [recs, setRecs] = useState(aiRecommendations);
-  const [toast, setToast] = useState<string | null>(null);
+  const {
+    hospitals,
+    doctors,
+    appointments,
+    queue,
+    beds,
+    staff,
+    auditEvents,
+    notifications,
+  } = useDataContext();
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
+  // DYNAMIC AGGREGATED STATS
+  const totalBeds = beds.length;
+  const availableBeds = beds.filter((b) => b.status === "available").length;
+  const occupiedBeds = beds.filter((b) => b.status === "occupied").length;
+  const reservedBeds = beds.filter((b) => b.status === "reserved").length;
+
+  const totalStaff = staff.length;
+  const onDutyStaff = staff.filter((s) => s.availability === "On Duty").length;
+  const availableStaff = staff.filter((s) => s.availability === "Available").length;
+  const onLeaveStaff = staff.filter((s) => s.availability === "On Leave").length;
+
+  const activeDoctorsCount = doctors.filter((d) => d.available).length;
+  const totalAppointmentsCount = appointments.length;
+  const waitingPatientsCount = queue.filter((q) => q.status === "waiting" || q.status === "confirmed").length;
+  const completedConsultationsCount = queue.filter((q) => q.status === "completed").length;
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   return (
     <DashboardLayout
       role="admin"
       title="Diabriq Network Command Center"
-      subtitle="Mumbai Metropolitan Network · 24 Sep 2026"
-      unreadNotifications={4}
+      subtitle="Mumbai Metropolitan Healthcare Operations"
+      unreadNotifications={unreadNotifications}
     >
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 size={16} />
-          <span className="text-sm font-medium">{toast}</span>
-        </div>
-      )}
-
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">Network Command Center</h2>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Real-time operational overview of the Diabriq diabetes care network
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Hospital Operations & Command Center</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Real-time operational summary aggregated from central shared state
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/analytics">
+            <Button size="sm" variant="outline" icon={<BarChart3 size={15} />}>
+              Operational Analytics
+            </Button>
+          </Link>
+          <Link href="/admin/staff">
+            <Button size="sm" icon={<Users size={15} />}>
+              Manage HRM Staff
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Network Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        {[
-          {
-            label: "Connected Hospitals",
-            value: networkStats.connectedHospitals,
-            icon: <Hospital size={18} />,
-            color: "text-blue-600 bg-blue-50 border-blue-200",
-          },
-          {
-            label: "Active Doctors",
-            value: networkStats.activeDoctors,
-            icon: <Stethoscope size={18} />,
-            color: "text-teal-600 bg-teal-50 border-teal-200",
-          },
-          {
-            label: "Total Patients",
-            value: networkStats.totalPatients.toLocaleString(),
-            icon: <Users size={18} />,
-            color: "text-violet-600 bg-violet-50 border-violet-200",
-          },
-          {
-            label: "Appointments Today",
-            value: networkStats.appointmentsToday.toLocaleString(),
-            icon: <Activity size={18} />,
-            color: "text-indigo-600 bg-indigo-50 border-indigo-200",
-          },
-          {
-            label: "Avg OPD Wait",
-            value: `${networkStats.avgWaitMinutes} min`,
-            icon: <Clock size={18} />,
-            color: "text-amber-600 bg-amber-50 border-amber-200",
-          },
-          {
-            label: "Available Beds",
-            value: networkStats.availableBeds,
-            icon: <Bed size={18} />,
-            color: "text-emerald-600 bg-emerald-50 border-emerald-200",
-          },
-        ].map((s, i) => (
-          <div key={i} className={`rounded-xl border p-4 shadow-sm ${s.color}`}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium opacity-70">{s.label}</p>
-              {s.icon}
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
+      {/* AGGREGATED TOP STATS CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Connected Clinics</p>
+            <HospitalIcon size={16} className="text-blue-600" />
           </div>
-        ))}
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left — Hospitals Table + Network Flow */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Hospital Table */}
-          <Card>
-            <CardHeader className="flex-row items-center justify-between">
-              <CardTitle>Hospital Network Status</CardTitle>
-              <Badge variant="green" dot>27 Facilities Connected</Badge>
-            </CardHeader>
-            <div className="overflow-x-auto">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Hospital</th>
-                    <th>OPD Load</th>
-                    <th>Slots</th>
-                    <th>Beds</th>
-                    <th>Doctors</th>
-                    <th>Avg Wait</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {networkHospitalTable.map((h, i) => (
-                    <tr key={i}>
-                      <td>
-                        <p className="font-medium text-slate-900 text-xs">{h.name}</p>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 max-w-16">
-                            <ProgressBar value={h.opdLoad} colorByValue size="sm" />
-                          </div>
-                          <span className="text-xs text-slate-600 font-medium w-8">{h.opdLoad}%</span>
-                        </div>
-                      </td>
-                      <td className="font-semibold text-sm">{h.slots}</td>
-                      <td className="font-semibold text-sm">{h.beds}</td>
-                      <td className="font-semibold text-sm">{h.doctors}</td>
-                      <td className="text-sm text-slate-600">{h.wait} min</td>
-                      <td>
-                        <Badge
-                          variant={
-                            h.status === "operational" ? "green" : h.status === "high-load" ? "amber" : "red"
-                          }
-                          dot
-                        >
-                          {h.status === "operational" ? "OK" : h.status === "high-load" ? "High Load" : "Critical"}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          {/* Patient Flow Monitor */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Flow Monitor — Today</CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Real-time patient movement across the network
-              </p>
-            </CardHeader>
-            <CardContent>
-              <PatientFlowVisualization />
-            </CardContent>
-          </Card>
-
-          {/* Network Wide Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Network Capacity Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={capacityTrend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }} />
-                  <Line type="monotone" dataKey="capacity" stroke="#3b82f6" strokeWidth={2} dot={false} name="Capacity %" />
-                  <Line type="monotone" dataKey="wait" stroke="#f59e0b" strokeWidth={2} dot={false} name="Avg Wait (min)" />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="flex gap-4 justify-center mt-2">
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <span className="w-3 h-0.5 bg-blue-500 inline-block" />
-                  Capacity %
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <span className="w-3 h-0.5 bg-amber-500 inline-block" />
-                  Avg Wait (min)
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <p className="text-2xl font-bold text-slate-900">{hospitals.length}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">Mumbai Metro Network</p>
         </div>
 
-        {/* Right — AI Recommendations + Audit */}
-        <div className="space-y-6">
-          {/* Network Bottleneck AI */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap size={16} className="text-violet-500" />
-                Network Operational Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recs.map((rec) => (
-                <div
-                  key={rec.id}
-                  className={`rounded-xl border p-3.5 ${
-                    rec.status === "approved"
-                      ? "border-emerald-200 bg-emerald-50"
-                      : rec.status === "rejected"
-                      ? "border-slate-200 bg-slate-50 opacity-60"
-                      : "border-violet-200 bg-violet-50/30"
-                  }`}
-                >
-                  <p className="text-xs font-semibold text-slate-900 mb-1">{rec.title}</p>
-                  <p className="text-xs text-slate-600 mb-2">{rec.description}</p>
-                  {rec.status === "pending" && (
-                    <>
-                      <AIBadge className="mb-2 text-[10px]" />
-                      <ApproveRejectButtons
-                        onApprove={() => {
-                          setRecs((prev) =>
-                            prev.map((r) => (r.id === rec.id ? { ...r, status: "approved" } : r))
-                          );
-                          showToast("Action approved. Logged in audit trail.");
-                        }}
-                        onReject={() =>
-                          setRecs((prev) =>
-                            prev.map((r) => (r.id === rec.id ? { ...r, status: "rejected" } : r))
-                          )
-                        }
-                      />
-                    </>
-                  )}
-                  {rec.status === "approved" && (
-                    <p className="text-xs text-emerald-600 flex items-center gap-1">
-                      <CheckCircle2 size={12} />
-                      Approved and logged.
-                    </p>
-                  )}
-                  {rec.status === "rejected" && (
-                    <p className="text-xs text-slate-500">Override: Action rejected.</p>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Today's Appointments</p>
+            <Calendar size={16} className="text-indigo-600" />
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{totalAppointmentsCount}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">{waitingPatientsCount} currently waiting</p>
+        </div>
 
-          {/* Audit Trail */}
-          <Card>
-            <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Shield size={15} className="text-slate-500" />
-                Audit Trail
-              </CardTitle>
-              <Badge variant="blue" dot={false}>Live</Badge>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                {auditEvents.map((event) => (
-                  <div key={event.id} className="px-5 py-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[10px] font-semibold text-slate-400 shrink-0">
-                            {event.timestamp}
-                          </span>
-                          <Badge
-                            variant={
-                              event.status === "completed"
-                                ? "green"
-                                : event.status === "approved"
-                                ? "blue"
-                                : event.status === "rejected"
-                                ? "red"
-                                : "amber"
-                            }
-                            dot
-                            className="text-[9px]"
-                          >
-                            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                          </Badge>
-                        </div>
-                        <p className="text-xs font-medium text-slate-900 truncate">{event.action}</p>
-                        <p className="text-[10px] text-slate-500">{event.user} · {event.facility}</p>
-                        {event.details && (
-                          <p className="text-[10px] text-violet-600 mt-0.5">{event.details}</p>
-                        )}
-                      </div>
-                    </div>
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Available Beds</p>
+            <Bed size={16} className="text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-600">{availableBeds}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">of {totalBeds} total beds</p>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">On-Duty Staff</p>
+            <Users size={16} className="text-teal-600" />
+          </div>
+          <p className="text-2xl font-bold text-teal-600">{onDutyStaff}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">of {totalStaff} total personnel</p>
+        </div>
+      </div>
+
+      {/* FOUR OPERATIONAL PANELS: OPD, BEDS, STAFF, PATIENT FLOW */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        {/* PANEL 1: OPD OPERATIONS */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Activity size={16} className="text-blue-600" /> OPD Operations
+              </span>
+              <Link href="/admin/opd" className="text-[11px] text-blue-600 font-semibold hover:underline">Config</Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Today's Appointments:</span>
+              <span className="font-bold text-slate-900">{totalAppointmentsCount}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Waiting Patients:</span>
+              <span className="font-bold text-amber-600">{waitingPatientsCount}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Completed Consultations:</span>
+              <span className="font-bold text-emerald-600">{completedConsultationsCount}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">OPD Capacity Load:</span>
+              <span className="font-bold text-blue-700">82% Avg</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PANEL 2: BEDS STATUS */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Bed size={16} className="text-indigo-600" /> Bed Allocation
+              </span>
+              <Link href="/admin/beds" className="text-[11px] text-blue-600 font-semibold hover:underline">Manage</Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Total Tracked Beds:</span>
+              <span className="font-bold text-slate-900">{totalBeds}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Available:</span>
+              <span className="font-bold text-emerald-600">{availableBeds}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Occupied:</span>
+              <span className="font-bold text-blue-700">{occupiedBeds}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">Reserved:</span>
+              <span className="font-bold text-amber-600">{reservedBeds}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PANEL 3: STAFF & HRM */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Users size={16} className="text-teal-600" /> HRM / Staff Status
+              </span>
+              <Link href="/admin/staff" className="text-[11px] text-blue-600 font-semibold hover:underline">Roster</Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Total Staff Personnel:</span>
+              <span className="font-bold text-slate-900">{totalStaff}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">On Duty:</span>
+              <span className="font-bold text-emerald-600">{onDutyStaff}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Available (Off-duty):</span>
+              <span className="font-bold text-blue-700">{availableStaff}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">On Leave / Inactive:</span>
+              <span className="font-bold text-amber-600">{onLeaveStaff}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PANEL 4: PATIENT FLOW */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Stethoscope size={16} className="text-emerald-600" /> Doctor Roster
+              </span>
+              <Link href="/admin/doctors" className="text-[11px] text-blue-600 font-semibold hover:underline">View</Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Total Specialists:</span>
+              <span className="font-bold text-slate-900">{doctors.length}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Active On-Duty:</span>
+              <span className="font-bold text-emerald-600">{activeDoctorsCount}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-500">Avg OPD Wait Time:</span>
+              <span className="font-bold text-amber-600">18 min</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">Cross-Hospital Referrals:</span>
+              <span className="font-bold text-blue-700">3 Pending</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* SECTION 3: AUDIT TRAIL LOGS */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Shield size={18} className="text-slate-700" />
+            Live Network Audit Trail & Log
+          </CardTitle>
+          <Badge variant="blue" dot={false}>Accountability Trail</Badge>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+            {auditEvents.map((event) => (
+              <div key={event.id} className="p-3.5 flex items-start justify-between text-xs">
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-mono text-[10px] text-slate-400">{event.timestamp}</span>
+                    <span className="font-bold text-slate-900">{event.user}</span>
+                    <Badge variant="slate" dot={false} className="text-[9px]">{event.userRole}</Badge>
                   </div>
-                ))}
+                  <p className="text-slate-700 font-medium">{event.action}</p>
+                  {event.details && <p className="text-[11px] text-slate-500 mt-0.5">{event.details}</p>}
+                </div>
+                <Badge variant={event.status === "completed" ? "green" : "blue"} dot className="text-[9px]">
+                  {event.status}
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
-  );
-}
-
-function PatientFlowVisualization() {
-  const steps = [
-    { label: "Appointments", value: 184, color: "bg-blue-500", textColor: "text-blue-600" },
-    { label: "Arrived", value: 167, color: "bg-blue-400", textColor: "text-blue-500" },
-    { label: "Waiting", value: 11, color: "bg-amber-500", textColor: "text-amber-600" },
-    { label: "Consultation", value: 4, color: "bg-violet-500", textColor: "text-violet-600" },
-    { label: "Completed", value: 148, color: "bg-emerald-500", textColor: "text-emerald-600" },
-    { label: "Delayed", value: 4, color: "bg-red-400", textColor: "text-red-500" },
-  ];
-
-  const max = Math.max(...steps.map((s) => s.value));
-
-  return (
-    <div className="space-y-3">
-      {steps.map((step, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <div className="w-20 shrink-0 text-right">
-            <span className={`text-xs font-medium ${step.textColor}`}>{step.label}</span>
-          </div>
-          <div className="flex-1 bg-slate-100 rounded-full h-5 relative overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${step.color}`}
-              style={{ width: `${(step.value / max) * 100}%` }}
-            />
-            <span className="absolute inset-0 flex items-center px-3 text-xs font-bold text-white mix-blend-multiply">
-              {step.value}
-            </span>
-          </div>
-          {i < steps.length - 1 && (
-            <div className="absolute left-[7.25rem] text-slate-300">↓</div>
-          )}
-        </div>
-      ))}
-      <p className="text-xs text-slate-500 mt-2">
-        184 appointments today · 167 arrived · 4 currently in consultation
-      </p>
-    </div>
   );
 }

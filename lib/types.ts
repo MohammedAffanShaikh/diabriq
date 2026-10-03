@@ -1,19 +1,32 @@
-// Types for Diabriq - Connected Diabetes Care Network
+// Types for DiabetesCareFlow - Integrated Diabetes Care & Hospital Operations Platform
 
-export interface Patient {
+export type UserRole = 'patient' | 'doctor' | 'hospital' | 'admin';
+
+export type DiabetesType = 'Type 1' | 'Type 2' | 'Gestational' | 'Pre-diabetes' | 'Other';
+
+export interface PatientProfile {
   id: string;
   name: string;
   age: number;
   gender: 'Male' | 'Female' | 'Other';
   phone: string;
   email?: string;
-  diabetesType: 'Type 1' | 'Type 2' | 'Gestational' | 'Pre-diabetes';
+  diabetesType: DiabetesType;
+  diagnosisYear: number;
+  heightCm: number;
+  weightKg: number;
+  bmi: number; // Calculated: weight / (height/100)^2
+  bloodPressure: string; // e.g., "124/82"
+  hba1c: number; // e.g., 7.2
+  medicationInfo: string;
+  lastConsultation?: string;
+  nextFollowUp?: string;
   connectedHospitals: string[];
   assignedDoctors: string[];
   totalVisits: number;
   documents: number;
-  caregiverAccess?: CaregiverAccess;
   language: 'English' | 'Hindi' | 'Marathi' | 'Urdu';
+  caregiverAccess?: CaregiverAccess;
 }
 
 export interface CaregiverAccess {
@@ -21,6 +34,52 @@ export interface CaregiverAccess {
   relationship: string;
   permissions: ('appointments' | 'queue' | 'notifications' | 'documents')[];
   authorized: boolean;
+}
+
+export type GlucoseReadingType = 'Fasting' | 'Before Meal' | 'After Meal' | 'Random';
+
+export interface GlucoseReading {
+  id: string;
+  patientId: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM AM/PM
+  value: number; // mg/dL
+  readingType: GlucoseReadingType;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface GlucoseTimeInRangeStats {
+  inRangePercent: number; // 70 - 180 mg/dL
+  aboveRangePercent: number; // > 180 mg/dL
+  belowRangePercent: number; // < 70 mg/dL
+  averageGlucose: number;
+  minGlucose: number;
+  maxGlucose: number;
+  readingCount: number;
+  fastingAvg: number;
+  postMealAvg: number;
+}
+
+export type TimelineEventType = 
+  | 'glucose_reading'
+  | 'hba1c_update'
+  | 'appointment_booked'
+  | 'appointment_completed'
+  | 'consultation'
+  | 'followup_scheduled'
+  | 'profile_updated';
+
+export interface TimelineEvent {
+  id: string;
+  patientId: string;
+  date: string; // Display date e.g. "03 Oct 2026"
+  timestamp: string;
+  title: string;
+  description: string;
+  type: TimelineEventType;
+  iconType?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface Doctor {
@@ -31,6 +90,9 @@ export interface Doctor {
   hospitalName: string;
   opdRoom: string;
   available: boolean;
+  availableDays: string[];
+  availableHours: string;
+  experienceYears: number;
   patientsToday: number;
   waitingPatients: number;
   inConsultation: number;
@@ -47,7 +109,7 @@ export interface Hospital {
   city: string;
   status: 'operational' | 'high-load' | 'critical';
   opdCapacityPercent: number;
-  bedsAvailable: BedAvailability;
+  bedsAvailable: BedAvailabilityStats;
   doctorsAvailable: number;
   doctorsTotal: number;
   appointmentsToday: number;
@@ -55,15 +117,63 @@ export interface Hospital {
   cancelledSlots: number;
   availableSlots: number;
   avgWaitMinutes: number;
+  departments: string[];
   lat?: number;
   lng?: number;
 }
 
-export interface BedAvailability {
+export interface BedAvailabilityStats {
   general: number;
   icu: number;
   observation: number;
+  total: number;
+  occupied: number;
+  reserved: number;
+  maintenance: number;
 }
+
+export type BedStatus = 'available' | 'occupied' | 'reserved' | 'maintenance';
+export type BedType = 'General' | 'ICU' | 'Observation' | 'Emergency';
+
+export interface HospitalBed {
+  id: string;
+  hospitalId: string;
+  hospitalName: string;
+  ward: string;
+  floor: string;
+  bedType: BedType;
+  status: BedStatus;
+  patientName?: string;
+  patientId?: string;
+  updatedAt: string;
+}
+
+export type StaffRole = 'Doctor' | 'Nurse' | 'Receptionist' | 'Technician' | 'Administrator';
+export type StaffShift = 'Morning' | 'Evening' | 'Night';
+export type StaffAvailability = 'On Duty' | 'Available' | 'On Leave';
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: StaffRole;
+  department: string;
+  contact: string;
+  email: string;
+  shift: StaffShift;
+  availability: StaffAvailability;
+  status: 'Active' | 'Inactive';
+  hospitalId: string;
+  hospitalName: string;
+}
+
+export type AppointmentStatus = 
+  | 'upcoming' 
+  | 'confirmed' 
+  | 'waiting' 
+  | 'in-consultation' 
+  | 'completed' 
+  | 'cancelled' 
+  | 'rescheduled';
 
 export interface Appointment {
   id: string;
@@ -74,11 +184,13 @@ export interface Appointment {
   specialty: string;
   hospitalId: string;
   hospitalName: string;
+  department: string;
   date: string;
   time: string;
   token: number;
-  status: 'upcoming' | 'completed' | 'cancelled' | 'rescheduled' | 'waiting' | 'in-consultation';
+  status: AppointmentStatus;
   type: 'regular' | 'follow-up' | 'walk-in' | 'referral';
+  createdAt: string;
 }
 
 export interface QueueEntry {
@@ -86,9 +198,41 @@ export interface QueueEntry {
   patientId: string;
   patientName: string;
   appointmentTime: string;
-  status: 'waiting' | 'in-consultation' | 'confirmed' | 'called' | 'completed';
+  doctorId: string;
+  status: 'waiting' | 'called' | 'in-consultation' | 'completed' | 'skipped' | 'confirmed';
   waitMinutes: number;
   fromHospital?: string;
+  appointmentId?: string;
+}
+
+export interface ConsultationRecord {
+  id: string;
+  appointmentId: string;
+  patientId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  hospitalId: string;
+  hospitalName: string;
+  date: string; // YYYY-MM-DD
+  time: string;
+  notes: string;
+  observations: string;
+  followUpDate?: string; // YYYY-MM-DD
+  createdAt: string;
+}
+
+export interface OpdDepartment {
+  id: string;
+  hospitalId: string;
+  name: string;
+  doctorId: string;
+  doctorName: string;
+  workingHours: string;
+  slotDurationMinutes: number;
+  maxPatientsPerSlot: number;
+  isOpen: boolean;
+  slots: string[];
 }
 
 export interface Notification {
@@ -105,7 +249,7 @@ export interface AuditEvent {
   id: string;
   timestamp: string;
   user: string;
-  userRole: 'patient' | 'doctor' | 'hospital-admin' | 'network-admin';
+  userRole: UserRole;
   action: string;
   facility: string;
   patientId?: string;
@@ -133,20 +277,18 @@ export interface NetworkStats {
   utilizationPercent: number;
 }
 
-export interface VisitRecord {
-  date: string;
-  year: number;
-  hospitalId: string;
-  hospitalName: string;
-  type: 'OPD Visit' | 'Uploaded document' | 'Follow-up scheduled' | 'Discharge document' | 'Consultation record' | 'Referral';
-  doctorName?: string;
-  notes?: string;
-}
-
 export interface RecordAccess {
   by: string;
   role: string;
   facility: string;
   timestamp: string;
   authorized: boolean;
+}
+
+export interface ResearchMetrics {
+  appointmentBookCount: number;
+  glucoseAddCount: number;
+  queueActionsCount: number;
+  consultationCount: number;
+  clicksCount: number;
 }
