@@ -30,7 +30,7 @@ import {
 import { useDataContext } from "@/lib/context/DataContext";
 
 export default function IntelligentAnalyticsPage() {
-  const { appointments, beds, staff, glucoseStats, notifications, role } = useDataContext();
+  const { appointments, beds, staff, notifications, role } = useDataContext();
 
   // Calculate OPD Demand by Day of Week using actual appointments data!
   const opdDemandByDay = [

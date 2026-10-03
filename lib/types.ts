@@ -285,6 +285,16 @@ export interface RecordAccess {
   authorized: boolean;
 }
 
+export interface VisitRecord {
+  date: string;
+  year: number;
+  hospitalId: string;
+  hospitalName: string;
+  type: 'OPD Visit' | 'Uploaded document' | 'Follow-up scheduled' | 'Discharge document' | 'Consultation record' | 'Referral';
+  doctorName?: string;
+  notes?: string;
+}
+
 export interface ResearchMetrics {
   appointmentBookCount: number;
   glucoseAddCount: number;

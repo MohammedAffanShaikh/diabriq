@@ -650,6 +650,59 @@ export const capacityTrend = [
   { time: "03:00 PM", capacity: 50, wait: 10 },
 ];
 
+// ─── VISIT HISTORY ─────────────────────────────────────────────────────────────
+export const visitHistory = [
+  {
+    year: 2026,
+    hospitalName: "City Diabetes Centre",
+    date: "03 Oct 2026",
+    type: "Follow-up",
+    doctorName: "Dr. Ayesha Khan",
+  },
+  {
+    year: 2026,
+    hospitalName: "City Diabetes Centre",
+    date: "20 Aug 2026",
+    type: "Regular Checkup",
+    doctorName: "Dr. Ayesha Khan",
+  },
+  {
+    year: 2026,
+    hospitalName: "Metro Hospital",
+    date: "10 Sep 2026",
+    type: "OPD Consultation",
+    doctorName: "Dr. Priya Mehta",
+  },
+  {
+    year: 2026,
+    hospitalName: "Community Health Centre",
+    date: "15 Jul 2026",
+    type: "Lab Work",
+    doctorName: null,
+  },
+  {
+    year: 2025,
+    hospitalName: "City Diabetes Centre",
+    date: "12 Dec 2025",
+    type: "Annual Review",
+    doctorName: "Dr. Ayesha Khan",
+  },
+  {
+    year: 2025,
+    hospitalName: "Metro Hospital",
+    date: "05 Aug 2025",
+    type: "Emergency Visit",
+    doctorName: "Dr. Priya Mehta",
+  },
+  {
+    year: 2025,
+    hospitalName: "Central Hospital",
+    date: "20 Mar 2025",
+    type: "Specialist Referral",
+    doctorName: "Dr. Sunil Patil",
+  },
+];
+
 // ─── RECORD ACCESS ─────────────────────────────────────────────────────────────
 export const recordAccess: RecordAccess[] = [
   {
